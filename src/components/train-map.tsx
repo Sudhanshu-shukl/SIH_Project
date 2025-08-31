@@ -41,6 +41,7 @@ const getInitialViewBox = (segments: any[]) => {
   const maxY = Math.max(...allPoints.map(p => p.y));
 
   const padding = 100;
+  
   const width = maxX - minX + padding * 2;
   const height = maxY - minY + padding * 2;
   const x = minX - padding;
@@ -54,30 +55,30 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 8;
 
 const createCurvePath = (points: Point[], tension = 0.5, closed = false): string => {
-    if (points.length < 2) return '';
-    if (points.length === 2) {
-        return `M ${points[0].x},${points[0].y} L ${points[1].x},${points[1].y}`;
-    }
+  if (points.length < 2) return '';
+  if (points.length === 2) {
+    return `M ${points[0].x},${points[0].y} L ${points[1].x},${points[1].y}`;
+  }
 
-    let path = `M ${points[0].x},${points[0].y}`;
-    const allPoints = points;
+  let path = `M ${points[0].x},${points[0].y}`;
+  const allPoints = points;
 
-    for (let i = 0; i < allPoints.length - 1; i++) {
-        const p0 = i > 0 ? allPoints[i - 1] : allPoints[i];
-        const p1 = allPoints[i];
-        const p2 = allPoints[i + 1];
-        const p3 = i < allPoints.length - 2 ? allPoints[i + 2] : p2;
+  for (let i = 0; i < allPoints.length - 1; i++) {
+    const p0 = i > 0 ? allPoints[i - 1] : allPoints[i];
+    const p1 = allPoints[i];
+    const p2 = allPoints[i + 1];
+    const p3 = i < allPoints.length - 2 ? allPoints[i + 2] : p2;
 
-        const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
-        const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+    const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+    const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
 
-        const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
-        const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
-        
-        path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
-    }
+    const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+    const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
 
-    return path;
+    path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+  }
+
+  return path;
 };
 
 
@@ -112,23 +113,23 @@ export default function TrainMap() {
       }
     });
   }, [trains]);
-  
+
   const handleAiResponse = (data: OptimizeScheduleOnDelayOutput) => {
     toast({
-        title: "AI Schedule Optimization Complete",
-        description: (
-            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                <p className="font-semibold">{data.summary}</p>
-                <ul className="list-disc pl-4 text-sm text-muted-foreground">
-                    {data.actions.map((action, index) => (
-                        <li key={index}>
-                            <strong>{action.trainId}:</strong> {action.action} - {action.reason}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        ),
-        duration: 20000 
+      title: "AI Schedule Optimization Complete",
+      description: (
+        <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+          <p className="font-semibold">{data.summary}</p>
+          <ul className="list-disc pl-4 text-sm text-muted-foreground">
+            {data.actions.map((action, index) => (
+              <li key={index}>
+                <strong>{action.trainId}:</strong> {action.action} - {action.reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+      duration: 20000
     });
 
     applyScheduleActions(data.actions);
@@ -141,15 +142,15 @@ export default function TrainMap() {
     });
 
     const otherTrains = trains.filter(t => t.id !== delayedTrain.id);
-    const result = await getOptimizedSchedule({ 
-      delayedTrain, 
+    const result = await getOptimizedSchedule({
+      delayedTrain,
       otherTrains,
       delayDuration: 15,
       disruptionType: 'delay'
     });
 
     if (result.success && result.data) {
-        handleAiResponse(result.data);
+      handleAiResponse(result.data);
     } else {
       toast({
         variant: "destructive",
@@ -164,15 +165,15 @@ export default function TrainMap() {
     updateAvailableSegments(newSegments);
 
     const affectedTrain = trains.find(train => {
-      if (train.status === 'finished' || train.status === 'stopped') return false; 
-      
+      if (train.status === 'finished' || train.status === 'stopped') return false;
+
       const currentPathIndex = train.path.indexOf(train.currentSegment?.startStationId ?? '');
       if (currentPathIndex === -1) return false;
 
       for (let i = currentPathIndex; i < train.path.length - 1; i++) {
         if (
-          (train.path[i] === removedSegment.startStationId && train.path[i+1] === removedSegment.endStationId) ||
-          (train.path[i] === removedSegment.endStationId && train.path[i+1] === removedSegment.startStationId)
+          (train.path[i] === removedSegment.startStationId && train.path[i + 1] === removedSegment.endStationId) ||
+          (train.path[i] === removedSegment.endStationId && train.path[i + 1] === removedSegment.startStationId)
         ) {
           return true;
         }
@@ -181,31 +182,31 @@ export default function TrainMap() {
     });
 
     if (affectedTrain) {
-        toast({
-            title: "Track Closed! Rerouting...",
-            description: `A track segment was removed. Rerouting train ${affectedTrain.id} and others via AI.`,
-        });
+      toast({
+        title: "Track Closed! Rerouting...",
+        description: `A track segment was removed. Rerouting train ${affectedTrain.id} and others via AI.`,
+      });
 
-        const otherTrains = trains.filter(t => t.id !== affectedTrain.id);
-        const result = await getOptimizedSchedule({
-            delayedTrain: { ...affectedTrain, status: 'stopped' }, // Treat as a disruption
-            otherTrains,
-            delayDuration: 0, // No delay, it's a pathing issue
-            disruptionType: 'track_closure',
+      const otherTrains = trains.filter(t => t.id !== affectedTrain.id);
+      const result = await getOptimizedSchedule({
+        delayedTrain: { ...affectedTrain, status: 'stopped' }, // Treat as a disruption
+        otherTrains,
+        delayDuration: 0, // No delay, it's a pathing issue
+        disruptionType: 'track_closure',
+      });
+
+      if (result.success && result.data) {
+        handleAiResponse(result.data);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Rerouting Failed",
+          description: result.error,
         });
-        
-        if (result.success && result.data) {
-            handleAiResponse(result.data);
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Rerouting Failed",
-                description: result.error,
-            });
-        }
+      }
     }
   };
-  
+
   const handleTrainClick = (train: Train) => {
     setSelectedTrain(train);
     setSidebarOpen(true);
@@ -214,7 +215,7 @@ export default function TrainMap() {
   const handleSidebarClose = () => {
     setSidebarOpen(false);
     setTimeout(() => {
-        setSelectedTrain(null);
+      setSelectedTrain(null);
     }, 300);
   }
 
@@ -236,7 +237,7 @@ export default function TrainMap() {
     setIsPanning(true);
     setStartPoint(getPointFromEvent(e));
   };
-  
+
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     if (!isPanning) return;
     const endPoint = getPointFromEvent(e);
@@ -270,7 +271,7 @@ export default function TrainMap() {
     }
 
     if (newWidth / initialViewBox.width > MAX_ZOOM || newWidth / initialViewBox.width < MIN_ZOOM) {
-        return;
+      return;
     }
 
     setViewBox({
@@ -280,14 +281,14 @@ export default function TrainMap() {
       height: newHeight,
     });
   };
-  
+
   return (
     <div className="w-full h-full p-4 overflow-hidden">
       <TooltipProvider>
-        <svg 
+        <svg
           ref={svgRef}
-          width="100%" 
-          height="100%" 
+          width="100%"
+          height="100%"
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
           className={cn("rounded-lg border bg-card shadow-sm", isPanning ? 'cursor-grabbing' : 'cursor-grab')}
           onMouseDown={handleMouseDown}
@@ -298,7 +299,7 @@ export default function TrainMap() {
         >
           <defs>
             <marker id="station-marker" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-                <circle cx="5" cy="5" r="3" className="fill-muted-foreground" />
+              <circle cx="5" cy="5" r="3" className="fill-muted-foreground" />
             </marker>
           </defs>
 
@@ -337,24 +338,24 @@ export default function TrainMap() {
             {trains.map(train => (
               <Tooltip key={train.id}>
                 <TooltipTrigger asChild>
-                  <g 
+                  <g
                     transform={`translate(${train.position.x}, ${train.position.y})`}
                     onClick={() => handleTrainClick(train)}
                     onMouseEnter={() => setHoveredTrain(train)}
                     onMouseLeave={() => setHoveredTrain(null)}
                     className="cursor-pointer"
                   >
-                    <circle 
+                    <circle
                       r="10"
                       className={cn(
                         'stroke-2 transition-all',
-                         getTrainStatusClass(train.status),
-                         selectedTrain?.id === train.id ? 'stroke-primary' : 'stroke-transparent'
+                        getTrainStatusClass(train.status),
+                        selectedTrain?.id === train.id ? 'stroke-primary' : 'stroke-transparent'
                       )}
                     >
-                        {train.status === 'moving' &&
-                            <animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite" />
-                        }
+                      {train.status === 'moving' &&
+                        <animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite" />
+                      }
                     </circle>
                   </g>
                 </TooltipTrigger>
@@ -362,11 +363,11 @@ export default function TrainMap() {
                   <div className="space-y-1">
                     <p className="font-bold">{train.id}</p>
                     <p className='flex items-center'>Status: <span className={cn('capitalize ml-1', {
-                        'text-chart-2': train.status === 'moving',
-                        'text-destructive': train.status === 'stopped',
-                        'text-muted-foreground': train.status === 'scheduled',
-                        'text-purple-500': train.status === 'finished'
-                    })}>{train.status === 'finished' ? <CheckCircle2 className="w-4 h-4 mr-1"/> : null}{train.status}</span></p>
+                      'text-chart-2': train.status === 'moving',
+                      'text-destructive': train.status === 'stopped',
+                      'text-muted-foreground': train.status === 'scheduled',
+                      'text-purple-500': train.status === 'finished'
+                    })}>{train.status === 'finished' ? <CheckCircle2 className="w-4 h-4 mr-1" /> : null}{train.status}</span></p>
                     <p>Departure: {train.departureTime}</p>
                     <p>Speed: {train.currentSpeed} km/h</p>
                     <p>ETA: {calculateEta(train, new Date(0))}</p>
@@ -374,23 +375,23 @@ export default function TrainMap() {
                 </TooltipContent>
               </Tooltip>
             ))}
-             {/* Hovered Train Speed Indicator */}
+            {/* Hovered Train Speed Indicator */}
             {hoveredTrain && hoveredTrain.status === 'moving' && (
-                <g 
-                    transform={`translate(${hoveredTrain.position.x + 15}, ${hoveredTrain.position.y - 15})`}
-                    className="pointer-events-none transition-opacity"
+              <g
+                transform={`translate(${hoveredTrain.position.x + 15}, ${hoveredTrain.position.y - 15})`}
+                className="pointer-events-none transition-opacity"
+              >
+                <circle r="12" fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth="1" />
+                <text
+                  x="0"
+                  y="0"
+                  textAnchor="middle"
+                  dy=".3em"
+                  className="text-[10px] font-bold fill-foreground"
                 >
-                    <circle r="12" fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth="1" />
-                    <text
-                        x="0"
-                        y="0"
-                        textAnchor="middle"
-                        dy=".3em"
-                        className="text-[10px] font-bold fill-foreground"
-                    >
-                        {hoveredTrain.currentSpeed}
-                    </text>
-                </g>
+                  {hoveredTrain.currentSpeed}
+                </text>
+              </g>
             )}
           </g>
         </svg>
