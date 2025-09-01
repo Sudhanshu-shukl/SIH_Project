@@ -24,9 +24,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  output: 'export', // <- this is the magic for static export
-  // optional if repo name is not root
-  // basePath: '/your-repo-name',
+  output: 'export',
+  basePath: '/SIH_project', // <-- THIS IS THE LINE YOU NEED TO ADD
 };
 
 export default nextConfig;
