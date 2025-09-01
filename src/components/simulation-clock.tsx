@@ -25,19 +25,19 @@ export default function SimulationClock() {
         </span>
       </Card>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={resetSimulation}>
+        <Button onClick={resetSimulation}>
           <RotateCw className="w-4 h-4" />
           <span className="sr-only">Reset Simulation</span>
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setSimulationSpeed(1)} className={speed === 1 ? 'bg-accent' : ''}>
+        <Button onClick={() => setSimulationSpeed(1)} className={speed === 1 ? 'bg-accent' : ''}>
           <Rewind className="w-4 h-4" />
           <span className="sr-only">Normal Speed</span>
         </Button>
-        <Button variant="outline" size="icon" onClick={togglePause}>
+        <Button onClick={togglePause}>
           {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
           <span className="sr-only">{isPaused ? 'Play' : 'Pause'}</span>
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setSimulationSpeed(5)} className={speed === 5 ? 'bg-accent' : ''}>
+        <Button onClick={() => setSimulationSpeed(5)} className={speed === 5 ? 'bg-accent' : ''}>
           <FastForward className="w-4 h-4" />
           <span className="sr-only">Fast Forward</span>
         </Button>

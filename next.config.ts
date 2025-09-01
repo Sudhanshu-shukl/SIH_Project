@@ -1,4 +1,4 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -24,6 +24,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  output: 'export', // <- this is the magic for static export
+  // optional if repo name is not root
+  // basePath: '/your-repo-name',
 };
 
 export default nextConfig;
